@@ -1,1 +1,1 @@
-application.renderScreen(application.screens.login()) //отрисовываем  стартовую страницу
+window.application.renderScreen('win') //отрисовываем  стартовую страницу
