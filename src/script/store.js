@@ -1,4 +1,5 @@
 window.application = {
+  app: document.querySelector('.app'),
   blocks: {
     //создаем блоки игры
     lobbyName: function (name) {
@@ -11,7 +12,7 @@ window.application = {
     imageHeader: function () {
       return {
         block: 'img',
-        cls: ['img', 'header_image'],
+        cls: ['img', 'header__image'],
         textContent: 'Войти в игру',
         attr: {
           src: './src/img/headerImage.png',
@@ -32,7 +33,7 @@ window.application = {
       return {
         block: 'p',
         cls: ['waiting__text'],
-        textContent: 'Ожидаем подключение соперника....',
+        textContent: 'Ожидаем подключение соперника...',
       };
     },
     btn: function (name) {
@@ -45,7 +46,7 @@ window.application = {
     btnNoActive: function (name) {
       return {
         block: 'button',
-        cls: ['btn', 'btn_noctive'],
+        cls: ['btn', 'btn__no-active'],
         textContent: name,
       };
     },
@@ -62,7 +63,7 @@ window.application = {
     loginInput: function () {
       return {
         block: 'input',
-        cls: ['input__login', 'input_name'],
+        cls: ['input__login', 'input__name'],
         attr: {
           id: 'login',
           type: 'login',
@@ -90,65 +91,24 @@ window.application = {
       };
     },
     gameBlock: function (name) {
-      switch (name) {
-        case 'Камень':
-          return {
-            block: 'div',
-            cls: 'game__btn',
-            content: [
-              {
-                block: 'img',
-                attr: {
-                  src: './src/img/rock.png',
-                  alt: name,
-                },
-              },
-              {
-                block: 'button',
-                cls: 'btn',
-                textContent: name,
-              },
-            ],
-          };
-        case 'Ножницы':
-          return {
-            block: 'div',
-            cls: 'game__btn',
-            content: [
-              {
-                block: 'img',
-                attr: {
-                  src: './src/img/scissors.png',
-                  alt: name,
-                },
-              },
-              {
-                block: 'button',
-                cls: 'btn',
-                textContent: name,
-              },
-            ],
-          };
-        case 'Бумага':
-          return {
-            block: 'div',
-            cls: 'game__btn',
-            content: [
-              {
-                block: 'img',
-                attr: {
-                  src: './src/img/paper.png',
-                  alt: name,
-                },
-              },
-              {
-                block: 'button',
-                cls: 'btn',
-                textContent: name,
-              },
-            ],
-          };
-      }
+      return {
+        block: 'div',
+        cls: 'game__btn',
+        content: [
+          {
+            block: 'img',
+            attr: {
+              src: window.application.getImagePathName(name),
+              alt: name,
+            },
+          },
+          {
+            block: 'button',
+            cls: 'btn',
+            textContent: name,
+          },
+        ],
+      };
     },
     winImage: function () {
       return {
@@ -171,23 +131,29 @@ window.application = {
       };
     },
   },
+  getImagePathName: function (name) {
+    if (name==='Камень') return 'src/img/rock.png'
+    if (name==='Ножницы') return 'src/img/scissors.png'
+    if (name==='Бумага') return 'src/img/paper.png'
+  },
   screens: {
     //создаем фрагмент экрана игры из существующих блоков
     lose: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'win',
         content: [
-          window.application.blocks.head('Игра'),
-          window.application.blocks.head5('ВладДенис'),
+          thisBlocks.head('Игра'),
+          thisBlocks.head5('ВладДенис'),
           {
             block: 'div',
             cls: 'win__block',
             content: [
-              window.application.blocks.loseImage(),
-              window.application.blocks.head2('Вы проиграли!'),
-              window.application.blocks.btn('Играть еще'),
-              window.application.blocks.btn('Лобби'),
+              thisBlocks.loseImage(),
+              thisBlocks.head2('Вы проиграли!'),
+              thisBlocks.btn('Играть еще'),
+              thisBlocks.btn('Лобби'),
             ],
           },
         ],
@@ -195,20 +161,21 @@ window.application = {
       return elem;
     },
     win: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'win',
         content: [
-          window.application.blocks.head('Игра'),
-          window.application.blocks.head5('ВладДенис'),
+          thisBlocks.head('Игра'),
+          thisBlocks.head5('ВладДенис'),
           {
             block: 'div',
             cls: 'win__block',
             content: [
-              window.application.blocks.winImage(),
-              window.application.blocks.head2('Вы победили!'),
-              window.application.blocks.btn('Играть еще'),
-              window.application.blocks.btn('Лобби'),
+              thisBlocks.winImage(),
+              thisBlocks.head2('Вы победили!'),
+              thisBlocks.btn('Играть еще'),
+              thisBlocks.btn('Лобби'),
             ],
           },
         ],
@@ -216,33 +183,35 @@ window.application = {
       return elem;
     },
     waiting: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'waiting',
         content: [
-          window.application.blocks.head('Игра'),
-          window.application.blocks.head5('ВладДенис'),
-          window.application.blocks.waitingImage(),
-          window.application.blocks.waitingText(),
+          thisBlocks.head('Игра'),
+          thisBlocks.head5('ВладДенис'),
+          thisBlocks.waitingImage(),
+          thisBlocks.waitingText(),
         ],
       };
 
       return elem;
     },
     game: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'game',
         content: [
-          window.application.blocks.head('Игра'),
-          window.application.blocks.head5('ВладДенис'),
+          thisBlocks.head('Игра'),
+          thisBlocks.head5('ВладДенис'),
           {
             block: 'div',
             cls: 'game__btns',
             content: [
-              window.application.blocks.gameBlock('Камень'),
-              window.application.blocks.gameBlock('Ножницы'),
-              window.application.blocks.gameBlock('Бумага'),
+              thisBlocks.gameBlock('Камень'),
+              thisBlocks.gameBlock('Ножницы'),
+              thisBlocks.gameBlock('Бумага'),
             ],
           },
         ],
@@ -250,41 +219,41 @@ window.application = {
       return elem;
     },
     login: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'login',
         content: [
-          window.application.blocks.loginLabel(),
-          window.application.blocks.loginInput(),
-          window.application.blocks.btn('Войти'),
-          window.application.blocks.btnNoActive('Войти'),
+          thisBlocks.loginLabel(),
+          thisBlocks.loginInput(),
+          thisBlocks.btn('Войти'),
+          thisBlocks.btnNoActive('Войти'),
         ],
       };
 
       return elem;
     },
     main: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'main',
-        content: [
-          window.application.blocks.btn('Войти'),
-          window.application.blocks.btnNoActive('Войти'),
-        ],
+        content: [thisBlocks.btn('Войти'), thisBlocks.btnNoActive('Войти')],
       };
 
       return elem;
     },
     lobby: function () {
+      const thisBlocks = window.application.blocks;
       const elem = {
         block: 'div',
         cls: 'lobby',
         content: [
-          window.application.blocks.head('Лобби'),
-          window.application.blocks.lobbyName('ВладДенис'),
-          window.application.blocks.lobbyName('ИванСергей'),
-          window.application.blocks.lobbyName('АнтонМакар'),
-          window.application.blocks.btn('Начать игру'),
+          thisBlocks.head('Лобби'),
+          thisBlocks.lobbyName('ВладДенис'),
+          thisBlocks.lobbyName('ИванСергей'),
+          thisBlocks.lobbyName('АнтонМакар'),
+          thisBlocks.btn('Начать игру'),
         ],
       };
       return elem;
@@ -295,9 +264,8 @@ window.application = {
   },
   renderScreen: function (screenName) {
     //отрисовываем экран
-    const app = document.querySelector('.app');
-    app.textContent = '';
-    app.appendChild(
+    window.application.app.textContent = '';
+    window.application.app.appendChild(
       this.renderEngine(window.application.screens[screenName]())
     );
   },
