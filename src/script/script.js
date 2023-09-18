@@ -1,1 +1,1 @@
-window.application.renderScreen('game') //отрисовываем  стартовую страницу
+window.application.renderScreen('main') //отрисовываем  стартовую страницу

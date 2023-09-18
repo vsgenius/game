@@ -36,11 +36,12 @@ window.application = {
         textContent: 'Ожидаем подключение соперника...',
       };
     },
-    btn: function (name) {
+    btn: function (name, cb) {
       return {
         block: 'button',
         cls: 'btn',
         textContent: name,
+        event: cb,
       };
     },
     btnNoActive: function (name) {
@@ -77,9 +78,9 @@ window.application = {
         textContent: name,
       };
     },
-    head5: function (name) {
+    waitingPlayer: function (name) {
       return {
-        block: 'h5',
+        block: 'p',
         cls: 'game__player',
         textContent: `Вы против ${name}`,
       };
@@ -90,10 +91,12 @@ window.application = {
         textContent: name,
       };
     },
-    gameBlock: function (name) {
+    gameBlock: function (name, cb) {
       return {
         block: 'div',
         cls: 'game__btn',
+        dataSetName: name,
+        event: cb,
         content: [
           {
             block: 'img',
@@ -132,14 +135,15 @@ window.application = {
     },
   },
   getImagePathName: function (name) {
-    if (name==='Камень') return 'src/img/rock.png'
-    if (name==='Ножницы') return 'src/img/scissors.png'
-    if (name==='Бумага') return 'src/img/paper.png'
+    if (name === 'Камень') return 'src/img/rock.png';
+    if (name === 'Ножницы') return 'src/img/scissors.png';
+    if (name === 'Бумага') return 'src/img/paper.png';
   },
   screens: {
     //создаем фрагмент экрана игры из существующих блоков
     lose: function () {
       const thisBlocks = window.application.blocks;
+      function cb() {}
       const elem = {
         block: 'div',
         cls: 'win',
@@ -167,7 +171,7 @@ window.application = {
         cls: 'win',
         content: [
           thisBlocks.head('Игра'),
-          thisBlocks.head5('ВладДенис'),
+          thisBlocks.waitingPlayer('ВладДенис'),
           {
             block: 'div',
             cls: 'win__block',
@@ -189,7 +193,7 @@ window.application = {
         cls: 'waiting',
         content: [
           thisBlocks.head('Игра'),
-          thisBlocks.head5('ВладДенис'),
+          thisBlocks.waitingPlayer('ВладДенис'),
           thisBlocks.waitingImage(),
           thisBlocks.waitingText(),
         ],
@@ -204,14 +208,14 @@ window.application = {
         cls: 'game',
         content: [
           thisBlocks.head('Игра'),
-          thisBlocks.head5('ВладДенис'),
+          thisBlocks.waitingPlayer('ВладДенис'),
           {
             block: 'div',
             cls: 'game__btns',
             content: [
-              thisBlocks.gameBlock('Камень'),
-              thisBlocks.gameBlock('Ножницы'),
-              thisBlocks.gameBlock('Бумага'),
+              thisBlocks.gameBlock('Камень', application.events.move),
+              thisBlocks.gameBlock('Ножницы', application.events.move),
+              thisBlocks.gameBlock('Бумага', application.events.move),
             ],
           },
         ],
@@ -226,19 +230,22 @@ window.application = {
         content: [
           thisBlocks.loginLabel(),
           thisBlocks.loginInput(),
-          thisBlocks.btn('Войти'),
-          thisBlocks.btnNoActive('Войти'),
+          thisBlocks.btn('Войти', application.events.login),
+          // thisBlocks.btnNoActive('Войти'),
         ],
       };
 
       return elem;
     },
     main: function () {
-      const thisBlocks = window.application.blocks;
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'main',
-        content: [thisBlocks.btn('Войти'), thisBlocks.btnNoActive('Войти')],
+        content: [
+          thisBlocks.btn('Войти', application.events.load),
+          //  thisBlocks.btnNoActive('Войти')
+        ],
       };
 
       return elem;
@@ -253,7 +260,7 @@ window.application = {
           thisBlocks.lobbyName('ВладДенис'),
           thisBlocks.lobbyName('ИванСергей'),
           thisBlocks.lobbyName('АнтонМакар'),
-          thisBlocks.btn('Начать игру'),
+          thisBlocks.btn('Начать игру', application.events.startGame),
         ],
       };
       return elem;
@@ -266,7 +273,7 @@ window.application = {
     //отрисовываем экран
     window.application.app.textContent = '';
     window.application.app.appendChild(
-      this.renderEngine(window.application.screens[screenName]())
+      this.renderEngine(application.screens[screenName]())
     );
   },
   renderEngine: function (block) {
@@ -304,12 +311,43 @@ window.application = {
     if (block.textContent) {
       elem.textContent = block.textContent;
     }
+    if (block.event) {
+      elem.addEventListener('click', block.event);
+    }
+    if (block.dataSetName) {
+      elem.dataset.name = block.dataSetName;
+    }
 
     return elem;
   },
   renderBlock: function (blockName, container) {
     //отрисовываем отдельный блок, если необходимо (пока не уверен, что пригодится)
     container.appendChild(blockName);
+  },
+  events: {
+    // GET /ping
+    // GET /player-status
+    // GET /player-list
+    load: () => {
+      application.renderScreen('login');
+    },
+    login: () => {
+      // GET /login
+      application.renderScreen('lobby');
+    },
+    startGame: () => {
+      // GET /start
+      application.renderScreen('game');
+    },
+    move: (e) => {
+      const target = e.target;
+      if (!target.classList.contains('btn')) return;
+      console.log(target.closest('.game__btn').dataset.name);
+      // GET /play
+      // GET /game-status
+      //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
+      application.renderScreen('waiting');
+    },
   },
   timers: [],
 };
