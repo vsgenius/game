@@ -26,6 +26,13 @@
   width: 100%;
 }
 
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
 .login {
   display: flex;
   flex-direction: column;
@@ -95,8 +102,8 @@
 }
 
 .game__btns {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .game__btn {

@@ -156,8 +156,8 @@ window.application = {
             content: [
               thisBlocks.loseImage(),
               thisBlocks.head2('Вы проиграли!'),
-              thisBlocks.btn('Играть еще'),
-              thisBlocks.btn('Лобби'),
+              thisBlocks.btn('Играть еще',application.events.startGame),
+              thisBlocks.btn('Лобби',application.events.login),
             ],
           },
         ],
@@ -178,8 +178,8 @@ window.application = {
             content: [
               thisBlocks.winImage(),
               thisBlocks.head2('Вы победили!'),
-              thisBlocks.btn('Играть еще'),
-              thisBlocks.btn('Лобби'),
+              thisBlocks.btn('Играть еще',application.events.startGame),
+              thisBlocks.btn('Лобби',application.events.login),
             ],
           },
         ],
@@ -325,10 +325,10 @@ window.application = {
     container.appendChild(blockName);
   },
   events: {
-    // GET /ping
     // GET /player-status
     // GET /player-list
     load: () => {
+          // GET /ping
       application.renderScreen('login');
     },
     login: () => {
@@ -346,6 +346,10 @@ window.application = {
       // GET /play
       // GET /game-status
       //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
+      //тестовая заглушка
+      setTimeout(()=>{
+        application.renderScreen('win');
+      },2000)
       application.renderScreen('waiting');
     },
   },
