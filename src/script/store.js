@@ -135,9 +135,12 @@ window.application = {
     },
   },
   getImagePathName: function (name) {
-    if (name === 'Камень') return 'src/img/rock.png';
-    if (name === 'Ножницы') return 'src/img/scissors.png';
-    if (name === 'Бумага') return 'src/img/paper.png';
+    const map = {
+      Камень: 'src/img/rock.png',
+      Ножницы: 'src/img/scissors.png',
+      Бумага: 'src/img/paper.png',
+    };
+    return map[name];
   },
   screens: {
     //создаем фрагмент экрана игры из существующих блоков
@@ -156,8 +159,8 @@ window.application = {
             content: [
               thisBlocks.loseImage(),
               thisBlocks.head2('Вы проиграли!'),
-              thisBlocks.btn('Играть еще',application.events.startGame),
-              thisBlocks.btn('Лобби',application.events.login),
+              thisBlocks.btn('Играть еще', application.events.startGame),
+              thisBlocks.btn('Лобби', application.events.login),
             ],
           },
         ],
@@ -178,8 +181,8 @@ window.application = {
             content: [
               thisBlocks.winImage(),
               thisBlocks.head2('Вы победили!'),
-              thisBlocks.btn('Играть еще',application.events.startGame),
-              thisBlocks.btn('Лобби',application.events.login),
+              thisBlocks.btn('Играть еще', application.events.startGame),
+              thisBlocks.btn('Лобби', application.events.login),
             ],
           },
         ],
@@ -231,7 +234,6 @@ window.application = {
           thisBlocks.loginLabel(),
           thisBlocks.loginInput(),
           thisBlocks.btn('Войти', application.events.login),
-          // thisBlocks.btnNoActive('Войти'),
         ],
       };
 
@@ -242,10 +244,7 @@ window.application = {
       const elem = {
         block: 'div',
         cls: 'main',
-        content: [
-          thisBlocks.btn('Войти', application.events.load),
-          //  thisBlocks.btnNoActive('Войти')
-        ],
+        content: [thisBlocks.btn('Войти', application.events.enter)],
       };
 
       return elem;
@@ -327,8 +326,8 @@ window.application = {
   events: {
     // GET /player-status
     // GET /player-list
-    load: () => {
-          // GET /ping
+    enter: () => {
+      // GET /ping
       application.renderScreen('login');
     },
     login: () => {
@@ -340,16 +339,15 @@ window.application = {
       application.renderScreen('game');
     },
     move: (e) => {
-      const target = e.target;
-      if (!target.classList.contains('btn')) return;
+      const { target } = e;
       console.log(target.closest('.game__btn').dataset.name);
       // GET /play
       // GET /game-status
       //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
       //тестовая заглушка
-      setTimeout(()=>{
+      setTimeout(() => {
         application.renderScreen('win');
-      },2000)
+      }, 2000);
       application.renderScreen('waiting');
     },
   },
