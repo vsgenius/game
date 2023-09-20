@@ -1,1 +1,0 @@
-application.renderScreen(application.screens.login()) //отрисовываем  стартовую страницу
