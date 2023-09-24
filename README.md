@@ -2,7 +2,7 @@
 
 ## Состав приложения
 
-- Движок отрисовки (функции renderScreen/renderBlock) 
+- Движок отрисовки (функции renderScreen/renderBlock)
 
 - Функция request для AJAX-запросов
 

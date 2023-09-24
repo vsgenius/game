@@ -269,19 +269,23 @@ window.application = {
       }
     },
     lobby: async function () {
+      const listPlayers = await application.api.playerList();
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'lobby',
         // заменить на функцию apilobby
-        content: [
-          thisBlocks.head('Лобби'),
-          thisBlocks.lobbyName('ВладДенис'),
-          thisBlocks.lobbyName('ИванСергей'),
-          thisBlocks.lobbyName('АнтонМакар'),
-          thisBlocks.btn('Начать игру', application.events.startGame),
-        ],
+        content: [],
       };
+      elem.content.push(thisBlocks.head('Лобби'));
+      for (const iterator of listPlayers.list) {
+        if (!iterator.you) {
+          elem.content.push(thisBlocks.lobbyName(iterator.login));
+        }
+      }
+      elem.content.push(
+        thisBlocks.btn('Начать игру', application.events.startGame)
+      );
       return elem;
     },
     loader: function () {
@@ -371,11 +375,18 @@ window.application = {
     // GET /player-list
     enter: () => {
       // GET /ping
-      application.renderScreen('login');
+      if (window.localStorage.getItem('game-token')) {
+        application.intervals.listPlayers();
+        application.renderScreen('lobby');
+      } else {
+        application.renderScreen('login');
+      }
     },
-    login: () => {
+    login: async (e) => {
       // GET /login
       //добавить apilogin
+      await application.api.login(e);
+      application.intervals.listPlayers();
       application.renderScreen('lobby');
     },
     startGame: () => {
@@ -397,13 +408,53 @@ window.application = {
     },
   },
   api: {
+    playerList: async () => {
+      application.renderScreen('loader');
+      try {
+        const token = window.localStorage.getItem('game-token');
+        if (!token) application.renderScreen('login');
+        const response = await fetch(
+          'https://skypro-rock-scissors-paper.herokuapp.com/player-list?token=' +
+            token
+        );
+        if (response.status !== 200) throw new Error('Ошибка');
+        application.app.textContent = '';
+        const result = await response.json();
+        console.log(result);
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+        application.clearTimers();
+      }
+    },
+    login: async (e) => {
+      const inputValue = e.target
+        .closest('.login')
+        .querySelector('.input__login').value;
+      application.renderScreen('loader');
+      try {
+        const response = await fetch(
+          'https://skypro-rock-scissors-paper.herokuapp.com/login?login=' +
+            inputValue
+        );
+        console.log(response.status);
+        if (response.status !== 200) throw new Error('Ошибка');
+        application.app.textContent = '';
+        const result = await response.json();
+        window.localStorage.setItem('game-token', result.token);
+        console.log(result);
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+        application.clearTimers();
+      }
+    },
     status: async () => {
       application.renderScreen('loader');
       try {
         const response = await fetch(
           'https://skypro-rock-scissors-paper.herokuapp.com/ping'
         );
-        console.log(response.status);
         if (response.status !== 200) throw new Error('Ошибка');
         application.app.textContent = '';
         const result = await response.json();
@@ -412,7 +463,6 @@ window.application = {
       } catch (error) {
         application.renderScreen('errorNetwork');
         application.clearTimers();
-        console.log(error);
       }
     },
     ping: async () => {
@@ -420,14 +470,12 @@ window.application = {
         const response = await fetch(
           'https://skypro-rock-scissors-paper.herokuapp.com/ping'
         );
-        console.log(response.status);
         if (response.status !== 200) throw new Error('Ошибка');
         const result = await response.json();
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
         application.clearTimers();
-        console.log(error);
       }
     },
   },
@@ -435,6 +483,13 @@ window.application = {
     ping: () => {
       const interval = setInterval(async () => {
         await application.api.ping();
+      }, 2000);
+      application.timers.push(interval);
+    },
+    listPlayers: () => {
+      const interval = setInterval(async () => {
+        await application.api.playerList();
+        application.renderScreen('lobby');
       }, 2000);
       application.timers.push(interval);
     },

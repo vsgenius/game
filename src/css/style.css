@@ -4,7 +4,7 @@
   --background-color: #e9e7e9;
   --header-color: #4f3558;
   --lobby-name-color: #aed5ce;
-  --text-color:#7a7a7a;
+  --text-color: #7a7a7a;
 }
 
 .body {
@@ -77,7 +77,7 @@
 
 .lobby__name {
   margin: 10px 0px;
-  background-color:var(--lobby-name-color);
+  background-color: var(--lobby-name-color);
   color: var(--header-color);
   padding: 10px 10px;
   border-radius: 10px;
@@ -95,13 +95,13 @@
 
 .waiting__text {
   margin: 10px 0px;
-  color:var(--text-color);
+  color: var(--text-color);
   padding: 10px 10px;
   border-radius: 10px;
 }
 
 .game {
-  color:var(--text-color);
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -126,7 +126,7 @@
 .game__btn img {
   width: 25%;
   border-radius: 20px;
-  background-color:var(--lobby-name-color);
+  background-color: var(--lobby-name-color);
 }
 
 .win {
@@ -152,24 +152,27 @@
   display: inline-block;
   position: relative;
   border: 3px solid;
-  border-color:var(--btn-color) #0000 var(--header-color) #0000;
+  border-color: var(--btn-color) #0000 var(--header-color) #0000;
   border-radius: 50%;
   box-sizing: border-box;
   animation: 1s rotate linear infinite;
 }
-.loader:before , .loader:after{
+.loader:before,
+.loader:after {
   content: '';
   top: 0;
   left: 0;
   position: absolute;
   border: 10px solid transparent;
-  border-bottom-color:var(--header-color);
+  border-bottom-color: var(--header-color);
   transform: translate(-10px, 19px) rotate(-35deg);
 }
 .loader:after {
-  border-color: var(--btn-color) #0000 #0000 #0000 ;
+  border-color: var(--btn-color) #0000 #0000 #0000;
   transform: translate(32px, 3px) rotate(-35deg);
 }
- @keyframes rotate {
-  100%{    transform: rotate(360deg)}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
 }
