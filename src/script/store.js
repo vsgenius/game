@@ -1,12 +1,153 @@
 window.application = {
   app: document.querySelector('.app'),
+  players: [],
   blocks: {
     //создаем блоки игры
-    lobbyName: function (name) {
+    login: () => {
+      return [
+        {
+          block: 'label',
+          cls: '',
+          attr: {
+            for: 'input__login',
+          },
+          textContent: 'Введите ник',
+        },
+        {
+          block: 'input',
+          cls: ['input__login', 'input__name'],
+          attr: {
+            id: 'login',
+            type: 'login',
+          },
+        },
+        {
+          block: 'button',
+          cls: 'btn',
+          textContent: 'Войти',
+          event: application.events.login,
+        },
+      ];
+    },
+    playerList: (list) => {
+      const result = [
+        {
+          block: 'h1',
+          cls: '',
+          textContent: 'Лобби',
+        },
+      ];
+      for (const iterator of list) {
+        if (!iterator.you) {
+          result.push({
+            block: 'p',
+            cls: 'lobby__name',
+            textContent: iterator.login,
+          });
+        }
+      }
+      return result;
+    },
+    play: () => {
       return {
-        block: 'p',
-        cls: 'lobby__name',
-        textContent: name,
+        block: 'button',
+        cls: 'btn',
+        textContent: 'Начать игру',
+        event: application.events.start,
+      };
+    },
+    move: (name) => {
+      return [
+        {
+          block: 'h1',
+          cls: '',
+          textContent: 'Игра',
+        },
+        {
+          block: 'p',
+          cls: 'game__player',
+          textContent: `Вы против ${name}`,
+        },
+        {
+          block: 'div',
+          cls: 'game__btns',
+          content: [application.blocks.gameBlock(application.events.move)],
+        },
+      ];
+    },
+    waiting: (name) => {
+      return [
+        {
+          block: 'h1',
+          cls: '',
+          textContent: 'Игра',
+        },
+        {
+          block: 'p',
+          cls: 'game__player',
+          textContent: `Вы против ${name}`,
+        },
+        {
+          block: 'img',
+          cls: ['waiting__clock'],
+          attr: {
+            src: './src/img/clock.png',
+            alt: 'waiting',
+          },
+        },
+        {
+          block: 'p',
+          cls: ['waiting__text'],
+          textContent: 'Ожидаем подключение соперника...',
+        },
+      ];
+    },
+    victory: () => {
+      return [
+        {
+          block: 'img',
+          cls: ['win__image'],
+          attr: {
+            src: './src/img/win.png',
+            alt: 'win',
+          },
+        },
+        {
+          block: 'h2',
+          textContent: 'Вы победили',
+        },
+      ];
+    },
+    failure: () => {
+      return [
+        {
+          block: 'img',
+          cls: ['win__image'],
+          attr: {
+            src: './src/img/lose.png',
+            alt: 'win',
+          },
+        },
+        {
+          block: 'h2',
+          textContent: 'Вы проиграли',
+        },
+      ];
+    },
+    toLobby: () => {
+      return {
+        block: 'button',
+        cls: 'btn',
+        textContent: 'Перейти в лобби',
+        event: application.events.enter,
+      };
+    },
+    playMore: () => {
+      return {
+        block: 'button',
+        cls: 'btn',
+        textContent: 'Играть еще',
+        event: application.events.start,
       };
     },
     imageHeader: function () {
@@ -19,23 +160,6 @@ window.application = {
         },
       };
     },
-    waitingImage: function () {
-      return {
-        block: 'img',
-        cls: ['waiting__clock'],
-        attr: {
-          src: './src/img/clock.png',
-          alt: 'waiting',
-        },
-      };
-    },
-    waitingText: function () {
-      return {
-        block: 'p',
-        cls: ['waiting__text'],
-        textContent: 'Ожидаем подключение соперника...',
-      };
-    },
     errorText: function () {
       return {
         block: 'p',
@@ -43,59 +167,12 @@ window.application = {
         textContent: 'Ошибка подключения',
       };
     },
-    btn: function (name, cb) {
+    main: function () {
       return {
         block: 'button',
         cls: 'btn',
-        textContent: name,
-        event: cb,
-      };
-    },
-    btnNoActive: function (name) {
-      return {
-        block: 'button',
-        cls: ['btn', 'btn__no-active'],
-        textContent: name,
-      };
-    },
-    loginLabel: function () {
-      return {
-        block: 'label',
-        cls: '',
-        attr: {
-          for: 'input__login',
-        },
-        textContent: 'Введите ник',
-      };
-    },
-    loginInput: function () {
-      return {
-        block: 'input',
-        cls: ['input__login', 'input__name'],
-        attr: {
-          id: 'login',
-          type: 'login',
-        },
-      };
-    },
-    head: function (name) {
-      return {
-        block: 'h1',
-        cls: '',
-        textContent: name,
-      };
-    },
-    waitingPlayer: function (name) {
-      return {
-        block: 'p',
-        cls: 'game__player',
-        textContent: `Вы против ${name}`,
-      };
-    },
-    head2: function (name) {
-      return {
-        block: 'h2',
-        textContent: name,
+        textContent: 'Войти',
+        event: application.events.enter,
       };
     },
     gameBlock: function (cb) {
@@ -137,53 +214,32 @@ window.application = {
         ],
       };
     },
-    winImage: function () {
-      return {
-        block: 'img',
-        cls: ['win__image'],
-        attr: {
-          src: './src/img/win.png',
-          alt: 'win',
-        },
-      };
-    },
-    loseImage: function () {
-      return {
-        block: 'img',
-        cls: ['win__image'],
-        attr: {
-          src: './src/img/lose.png',
-          alt: 'lose',
-        },
-      };
-    },
-  },
-  getImagePathName: function (name) {
-    const map = {
-      Камень: 'src/img/rock.png',
-      Ножницы: 'src/img/scissors.png',
-      Бумага: 'src/img/paper.png',
-    };
-    return map[name];
   },
   screens: {
-    //создаем фрагмент экрана игры из существующих блоков
     lose: async function () {
+      const name = 'ВладДенис';
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'win',
         content: [
-          thisBlocks.head('Игра'),
-          thisBlocks.head5('ВладДенис'),
+          {
+            block: 'h1',
+            cls: '',
+            textContent: 'Игра',
+          },
+          {
+            block: 'p',
+            cls: 'game__player',
+            textContent: `против ${name}`,
+          },
           {
             block: 'div',
             cls: 'win__block',
             content: [
-              thisBlocks.loseImage(),
-              thisBlocks.head2('Вы проиграли!'),
-              thisBlocks.btn('Играть еще', application.events.startGame),
-              thisBlocks.btn('Лобби', application.events.lobby),
+              thisBlocks.failure(),
+              thisBlocks.playMore(),
+              thisBlocks.toLobby(),
             ],
           },
         ],
@@ -192,67 +248,64 @@ window.application = {
     },
     win: function () {
       const thisBlocks = application.blocks;
+      const name = 'ВладДенис';
       const elem = {
         block: 'div',
         cls: 'win',
         content: [
-          thisBlocks.head('Игра'),
-          thisBlocks.waitingPlayer('ВладДенис'),
+          {
+            block: 'h1',
+            cls: '',
+            textContent: 'Игра',
+          },
+          {
+            block: 'p',
+            cls: 'game__player',
+            textContent: `против ${name}`,
+          },
           {
             block: 'div',
             cls: 'win__block',
             content: [
-              thisBlocks.winImage(),
-              thisBlocks.head2('Вы победили!'),
-              thisBlocks.btn('Играть еще', application.events.startGame),
-              thisBlocks.btn('Лобби', application.events.lobby),
+              thisBlocks.victory(),
+              thisBlocks.playMore(),
+              thisBlocks.toLobby(),
             ],
+          },
+          {
+            block: 'div',
+            cls: 'win__block',
+            content: [],
           },
         ],
       };
       return elem;
     },
     waiting: function () {
-      const thisBlocks = application.blocks;
+      //заглушка
+      const name = 'ВладСергей';
       const elem = {
         block: 'div',
         cls: 'waiting',
-        content: [
-          thisBlocks.head('Игра'),
-          thisBlocks.waitingPlayer('ВладДенис'),
-          thisBlocks.waitingImage(),
-          thisBlocks.waitingText(),
-        ],
+        content: application.blocks.waiting(name),
       };
       return elem;
     },
     game: function () {
-      const thisBlocks = application.blocks;
+      //временная заглушка
+      const name = 'ВладДенис';
       const elem = {
         block: 'div',
         cls: 'game',
-        content: [
-          thisBlocks.head('Игра'),
-          thisBlocks.waitingPlayer('ВладДенис'),
-          {
-            block: 'div',
-            cls: 'game__btns',
-            content: [thisBlocks.gameBlock(application.events.move)],
-          },
-        ],
+        content: application.blocks.move(name),
       };
       return elem;
     },
     login: function () {
-      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'login',
-        content: [
-          thisBlocks.loginLabel(),
-          thisBlocks.loginInput(),
-          thisBlocks.btn('Войти', application.events.login),
-        ],
+        content: application.blocks.login(),
       };
       return elem;
     },
@@ -263,7 +316,7 @@ window.application = {
         const elem = {
           block: 'div',
           cls: 'main',
-          content: thisBlocks.btn('Войти', application.events.enter),
+          content: thisBlocks.main(),
         };
         return elem;
       }
@@ -274,18 +327,11 @@ window.application = {
       const elem = {
         block: 'div',
         cls: 'lobby',
-        // заменить на функцию apilobby
-        content: [],
+        content: [
+          ...thisBlocks.playerList(listPlayers.list),
+          thisBlocks.play(),
+        ],
       };
-      elem.content.push(thisBlocks.head('Лобби'));
-      for (const iterator of listPlayers.list) {
-        if (!iterator.you) {
-          elem.content.push(thisBlocks.lobbyName(iterator.login));
-        }
-      }
-      elem.content.push(
-        thisBlocks.btn('Начать игру', application.events.startGame)
-      );
       return elem;
     },
     loader: function () {
@@ -389,7 +435,7 @@ window.application = {
       application.intervals.listPlayers();
       application.renderScreen('lobby');
     },
-    startGame: () => {
+    start: () => {
       // GET /start
       application.clearTimers();
       application.renderScreen('game');
@@ -403,14 +449,14 @@ window.application = {
       //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
       //тестовая заглушка
       setTimeout(() => {
-        application.renderScreen('win');
+        application.renderScreen('lose');
       }, 1000);
       application.renderScreen('waiting');
     },
   },
   api: {
     playerList: async () => {
-      application.renderScreen('loader');
+      // application.renderScreen('loader');
       try {
         const token = window.localStorage.getItem('game-token');
         if (!token) application.renderScreen('login');
@@ -419,9 +465,8 @@ window.application = {
             token
         );
         if (response.status !== 200) throw new Error('Ошибка');
-        application.app.textContent = '';
+        // application.app.textContent = '';
         const result = await response.json();
-        console.log(result);
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
@@ -438,12 +483,10 @@ window.application = {
           'https://skypro-rock-scissors-paper.herokuapp.com/login?login=' +
             inputValue
         );
-        console.log(response.status);
         if (response.status !== 200) throw new Error('Ошибка');
         application.app.textContent = '';
         const result = await response.json();
         window.localStorage.setItem('game-token', result.token);
-        console.log(result);
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
@@ -489,8 +532,14 @@ window.application = {
     },
     listPlayers: () => {
       const interval = setInterval(async () => {
-        await application.api.playerList();
-        application.renderScreen('lobby');
+        const listPlayers = await application.api.playerList();
+        console.log(listPlayers, application.players);
+        if (
+          JSON.stringify(application.players) !== JSON.stringify(listPlayers)
+        ) {
+          application.renderScreen('lobby');
+        }
+        application.players = listPlayers;
       }, 2000);
       application.timers.push(interval);
     },
