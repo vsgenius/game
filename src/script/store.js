@@ -183,7 +183,7 @@ window.application = {
               thisBlocks.loseImage(),
               thisBlocks.head2('Вы проиграли!'),
               thisBlocks.btn('Играть еще', application.events.startGame),
-              thisBlocks.btn('Лобби', application.events.login),
+              thisBlocks.btn('Лобби', application.events.lobby),
             ],
           },
         ],
@@ -205,7 +205,7 @@ window.application = {
               thisBlocks.winImage(),
               thisBlocks.head2('Вы победили!'),
               thisBlocks.btn('Играть еще', application.events.startGame),
-              thisBlocks.btn('Лобби', application.events.login),
+              thisBlocks.btn('Лобби', application.events.lobby),
             ],
           },
         ],
@@ -391,6 +391,7 @@ window.application = {
     },
     startGame: () => {
       // GET /start
+      application.clearTimers();
       application.renderScreen('game');
     },
     move: (e) => {
