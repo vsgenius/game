@@ -3,7 +3,7 @@
   --btn-no-active-color: #909095;
   --background-color: #e9e7e9;
   --header-color: #4f3558;
-  --lobby-name-color: #328284;
+  --lobby-name-color: #aed5ce;
   --text-color:#7a7a7a;
 }
 
@@ -77,8 +77,8 @@
 
 .lobby__name {
   margin: 10px 0px;
-  background-color:var(--other-color);
-  color: var(--background-color);
+  background-color:var(--lobby-name-color);
+  color: var(--header-color);
   padding: 10px 10px;
   border-radius: 10px;
 }
@@ -118,14 +118,15 @@
 
 .game__btn {
   display: flex;
+  justify-content: space-evenly;
   gap: 10px;
   padding: 10px 0px;
 }
 
 .game__btn img {
-  width: 15%;
+  width: 25%;
   border-radius: 20px;
-  border: 1px solid var(--btn-color);
+  background-color:var(--lobby-name-color);
 }
 
 .win {
@@ -144,4 +145,31 @@
 .win__image {
   width: 30%;
   margin: 20px 0;
+}
+.loader {
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  position: relative;
+  border: 3px solid;
+  border-color:var(--btn-color) #0000 var(--header-color) #0000;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: 1s rotate linear infinite;
+}
+.loader:before , .loader:after{
+  content: '';
+  top: 0;
+  left: 0;
+  position: absolute;
+  border: 10px solid transparent;
+  border-bottom-color:var(--header-color);
+  transform: translate(-10px, 19px) rotate(-35deg);
+}
+.loader:after {
+  border-color: var(--btn-color) #0000 #0000 #0000 ;
+  transform: translate(32px, 3px) rotate(-35deg);
+}
+ @keyframes rotate {
+  100%{    transform: rotate(360deg)}
 }

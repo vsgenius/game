@@ -36,6 +36,13 @@ window.application = {
         textContent: 'Ожидаем подключение соперника...',
       };
     },
+    errorText: function () {
+      return {
+        block: 'p',
+        cls: ['waiting__text'],
+        textContent: 'Ошибка подключения',
+      };
+    },
     btn: function (name, cb) {
       return {
         block: 'button',
@@ -91,24 +98,41 @@ window.application = {
         textContent: name,
       };
     },
-    gameBlock: function (name, cb) {
+    gameBlock: function (cb) {
       return {
         block: 'div',
         cls: 'game__btn',
-        dataSetName: name,
         event: cb,
         content: [
           {
             block: 'img',
+            cls: 'image',
+            dataSetName: 'rock',
             attr: {
-              src: window.application.getImagePathName(name),
-              alt: name,
+              src: 'src/img/rock.png',
+
+              alt: 'rock',
             },
           },
           {
-            block: 'button',
-            cls: 'btn',
-            textContent: name,
+            block: 'img',
+            cls: 'image',
+            dataSetName: 'scissors',
+            attr: {
+              src: 'src/img/scissors.png',
+
+              alt: 'scissors',
+            },
+          },
+          {
+            block: 'img',
+            cls: 'image',
+            dataSetName: 'paper',
+            attr: {
+              src: 'src/img/paper.png',
+
+              alt: 'paper',
+            },
           },
         ],
       };
@@ -144,9 +168,8 @@ window.application = {
   },
   screens: {
     //создаем фрагмент экрана игры из существующих блоков
-    lose: function () {
-      const thisBlocks = window.application.blocks;
-      function cb() {}
+    lose: async function () {
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'win',
@@ -168,7 +191,7 @@ window.application = {
       return elem;
     },
     win: function () {
-      const thisBlocks = window.application.blocks;
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'win',
@@ -190,7 +213,7 @@ window.application = {
       return elem;
     },
     waiting: function () {
-      const thisBlocks = window.application.blocks;
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'waiting',
@@ -201,11 +224,10 @@ window.application = {
           thisBlocks.waitingText(),
         ],
       };
-
       return elem;
     },
     game: function () {
-      const thisBlocks = window.application.blocks;
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'game',
@@ -215,18 +237,14 @@ window.application = {
           {
             block: 'div',
             cls: 'game__btns',
-            content: [
-              thisBlocks.gameBlock('Камень', application.events.move),
-              thisBlocks.gameBlock('Ножницы', application.events.move),
-              thisBlocks.gameBlock('Бумага', application.events.move),
-            ],
+            content: [thisBlocks.gameBlock(application.events.move)],
           },
         ],
       };
       return elem;
     },
     login: function () {
-      const thisBlocks = window.application.blocks;
+      const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'login',
@@ -236,24 +254,26 @@ window.application = {
           thisBlocks.btn('Войти', application.events.login),
         ],
       };
-
       return elem;
     },
-    main: function () {
+    main: async function () {
+      const result = await application.api.status();
+      const thisBlocks = application.blocks;
+      if (result) {
+        const elem = {
+          block: 'div',
+          cls: 'main',
+          content: thisBlocks.btn('Войти', application.events.enter),
+        };
+        return elem;
+      }
+    },
+    lobby: async function () {
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
-        cls: 'main',
-        content: [thisBlocks.btn('Войти', application.events.enter)],
-      };
-
-      return elem;
-    },
-    lobby: function () {
-      const thisBlocks = window.application.blocks;
-      const elem = {
-        block: 'div',
         cls: 'lobby',
+        // заменить на функцию apilobby
         content: [
           thisBlocks.head('Лобби'),
           thisBlocks.lobbyName('ВладДенис'),
@@ -264,15 +284,32 @@ window.application = {
       };
       return elem;
     },
+    loader: function () {
+      return { block: 'span', cls: 'loader' };
+    },
+    errorNetwork: function () {
+      const thisBlocks = application.blocks;
+      const elem = {
+        block: 'div',
+        cls: 'error',
+        content: [
+          thisBlocks.errorText(),
+          thisBlocks.btn('Повторить', () => {
+            application.renderScreen('main');
+          }),
+        ],
+      };
+      return elem;
+    },
   },
   status: function (className) {
     document.querySelector(className).classList.toggle('className');
   },
-  renderScreen: function (screenName) {
+  renderScreen: async function (screenName) {
     //отрисовываем экран
-    window.application.app.textContent = '';
-    window.application.app.appendChild(
-      this.renderEngine(application.screens[screenName]())
+    application.app.textContent = '';
+    application.app.appendChild(
+      this.renderEngine(await application.screens[screenName]())
     );
   },
   renderEngine: function (block) {
@@ -323,6 +360,12 @@ window.application = {
     //отрисовываем отдельный блок, если необходимо (пока не уверен, что пригодится)
     container.appendChild(blockName);
   },
+  clearTimers: function () {
+    for (const iterator of application.timers) {
+      window.clearInterval(iterator);
+      window.clearTimeout(iterator);
+    }
+  },
   events: {
     // GET /player-status
     // GET /player-list
@@ -332,6 +375,7 @@ window.application = {
     },
     login: () => {
       // GET /login
+      //добавить apilogin
       application.renderScreen('lobby');
     },
     startGame: () => {
@@ -340,15 +384,59 @@ window.application = {
     },
     move: (e) => {
       const { target } = e;
-      console.log(target.closest('.game__btn').dataset.name);
+      if (target.className !== 'image') return;
+      console.log(target.dataset.name);
       // GET /play
       // GET /game-status
       //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
       //тестовая заглушка
       setTimeout(() => {
         application.renderScreen('win');
-      }, 2000);
+      }, 1000);
       application.renderScreen('waiting');
+    },
+  },
+  api: {
+    status: async () => {
+      application.renderScreen('loader');
+      try {
+        const response = await fetch(
+          'https://skypro-rock-scissors-paper.herokuapp.com/ping'
+        );
+        console.log(response.status);
+        if (response.status !== 200) throw new Error('Ошибка');
+        application.app.textContent = '';
+        const result = await response.json();
+        application.intervals.ping();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+        application.clearTimers();
+        console.log(error);
+      }
+    },
+    ping: async () => {
+      try {
+        const response = await fetch(
+          'https://skypro-rock-scissors-paper.herokuapp.com/ping'
+        );
+        console.log(response.status);
+        if (response.status !== 200) throw new Error('Ошибка');
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+        application.clearTimers();
+        console.log(error);
+      }
+    },
+  },
+  intervals: {
+    ping: () => {
+      const interval = setInterval(async () => {
+        await application.api.ping();
+      }, 2000);
+      application.timers.push(interval);
     },
   },
   timers: [],
