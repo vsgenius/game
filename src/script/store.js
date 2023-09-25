@@ -310,7 +310,7 @@ window.application = {
       return elem;
     },
     main: async function () {
-      const result = await application.api.status();
+      const result = await application.useCases.status();
       const thisBlocks = application.blocks;
       if (result) {
         const elem = {
@@ -322,7 +322,7 @@ window.application = {
       }
     },
     lobby: async function () {
-      const listPlayers = await application.api.playerList();
+      const listPlayers = await application.useCases.getPlayersList();
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
@@ -338,6 +338,7 @@ window.application = {
       return { block: 'span', cls: 'loader' };
     },
     errorNetwork: function () {
+      application.clearTimers();
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
@@ -416,13 +417,21 @@ window.application = {
       window.clearTimeout(iterator);
     }
   },
+  setToken: (token) => {
+    window.localStorage.setItem('game-token', token);
+    application.sote = token;
+  },
+  getToken: () => {
+    application.sote = window.localStorage.getItem('game-token');
+  },
+  sote: '',
   events: {
     // GET /player-status
     // GET /player-list
     enter: () => {
       // GET /ping
       if (window.localStorage.getItem('game-token')) {
-        application.intervals.listPlayers();
+        application.intervals.updatePlayersList();
         application.renderScreen('lobby');
       } else {
         application.renderScreen('login');
@@ -431,8 +440,8 @@ window.application = {
     login: async (e) => {
       // GET /login
       //добавить apilogin
-      await application.api.login(e);
-      application.intervals.listPlayers();
+      await application.useCases.login(e);
+      application.intervals.updatePlayersList();
       application.renderScreen('lobby');
     },
     start: () => {
@@ -454,8 +463,8 @@ window.application = {
       application.renderScreen('waiting');
     },
   },
-  api: {
-    playerList: async () => {
+  useCases: {
+    getPlayersList: async () => {
       // application.renderScreen('loader');
       try {
         const token = window.localStorage.getItem('game-token');
@@ -470,7 +479,6 @@ window.application = {
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
-        application.clearTimers();
       }
     },
     login: async (e) => {
@@ -490,7 +498,6 @@ window.application = {
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
-        application.clearTimers();
       }
     },
     status: async () => {
@@ -506,7 +513,6 @@ window.application = {
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
-        application.clearTimers();
       }
     },
     ping: async () => {
@@ -519,21 +525,19 @@ window.application = {
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
-        application.clearTimers();
       }
     },
   },
   intervals: {
     ping: () => {
       const interval = setInterval(async () => {
-        await application.api.ping();
+        await application.useCases.ping();
       }, 2000);
       application.timers.push(interval);
     },
-    listPlayers: () => {
+    updatePlayersList: () => {
       const interval = setInterval(async () => {
-        const listPlayers = await application.api.playerList();
-        console.log(listPlayers, application.players);
+        const listPlayers = await application.useCases.getPlayersList();
         if (
           JSON.stringify(application.players) !== JSON.stringify(listPlayers)
         ) {

@@ -1,1 +1,3 @@
-application.renderScreen('main'); //отрисовываем  стартовую страницу
+(function initApp() {
+  application.renderScreen('main');
+})();
