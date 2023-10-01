@@ -1,8 +1,26 @@
 window.application = {
+  url: 'http://localhost:3000',
   app: document.querySelector('.app'),
   players: [],
   blocks: {
     //создаем блоки игры
+    errorNetwork: () => {
+      return [
+        {
+          block: 'p',
+          cls: ['waiting__text'],
+          textContent: 'Ошибка подключения',
+        },
+        {
+          block: 'button',
+          cls: 'btn',
+          textContent: 'Повторить',
+          event: () => {
+            application.renderScreen('main');
+          },
+        },
+      ];
+    },
     login: () => {
       return [
         {
@@ -160,13 +178,6 @@ window.application = {
         },
       };
     },
-    errorText: function () {
-      return {
-        block: 'p',
-        cls: ['waiting__text'],
-        textContent: 'Ошибка подключения',
-      };
-    },
     main: function () {
       return {
         block: 'button',
@@ -216,7 +227,7 @@ window.application = {
     },
   },
   screens: {
-    lose: async function () {
+    lose: function () {
       const name = 'ВладДенис';
       const thisBlocks = application.blocks;
       const elem = {
@@ -310,7 +321,7 @@ window.application = {
       return elem;
     },
     main: async function () {
-      const result = await application.useCases.status();
+      const result = await application.useCases.getStatusNetwork();
       const thisBlocks = application.blocks;
       if (result) {
         const elem = {
@@ -343,12 +354,7 @@ window.application = {
       const elem = {
         block: 'div',
         cls: 'error',
-        content: [
-          thisBlocks.errorText(),
-          thisBlocks.btn('Повторить', () => {
-            application.renderScreen('main');
-          }),
-        ],
+        content: thisBlocks.errorNetwork(),
       };
       return elem;
     },
@@ -419,18 +425,26 @@ window.application = {
   },
   setToken: (token) => {
     window.localStorage.setItem('game-token', token);
-    application.sote = token;
+    application.token = token;
   },
   getToken: () => {
-    application.sote = window.localStorage.getItem('game-token');
+    application.token = window.localStorage.getItem('game-token');
+    return application.token;
   },
-  sote: '',
+  token: '',
   events: {
     // GET /player-status
     // GET /player-list
-    enter: () => {
+    enter: async () => {
       // GET /ping
-      if (window.localStorage.getItem('game-token')) {
+      const result = await application.useCases.getPlayerStatus();
+      if (window.localStorage.getItem('game-token') && result.status === 'ok') {
+        console.log(result);
+        if (result['player-status'].game) {
+          application.gameId = result['player-status'].game.id;
+          application.events.start();
+          return;
+        }
         application.intervals.updatePlayersList();
         application.renderScreen('lobby');
       } else {
@@ -438,58 +452,105 @@ window.application = {
       }
     },
     login: async (e) => {
-      // GET /login
-      //добавить apilogin
-      await application.useCases.login(e);
+      await application.useCases.getLogin(e);
       application.intervals.updatePlayersList();
+      application.intervals.playerStatus();
       application.renderScreen('lobby');
     },
-    start: () => {
-      // GET /start
+    start: async () => {
       application.clearTimers();
-      application.renderScreen('game');
+      // application.gameId = await application.useCases.gameStart();
+      console.log(await application.useCases.gameStart());
+      const result = await application.useCases.getStatusGame();
+      if (!result || result.message === 'no game id') return;
+      console.log(result);
+      if (result['game-status'].status === 'waiting-for-start') {
+        application.renderScreen('waiting');
+        application.intervals.gameStatus();
+      }
+      if (result['game-status'].status === 'waiting-for-enemy-move') {
+        application.renderScreen('waiting');
+        application.intervals.gameStatus();
+      }
+      if (result['game-status'].status === 'waiting-for-your-move') {
+        application.renderScreen('game');
+      }
+      if (result['game-status'].status === 'lose') {
+        application.renderScreen('win');
+      }
+      if (result['game-status'].status === 'win') {
+        application.renderScreen('lose');
+      }
     },
-    move: (e) => {
+    move: async (e) => {
       const { target } = e;
       if (target.className !== 'image') return;
       console.log(target.dataset.name);
-      // GET /play
-      // GET /game-status
-      //фетч на сервер - получение ответа и отрисовка либо победы либо поражения
-      //тестовая заглушка
-      setTimeout(() => {
-        application.renderScreen('lose');
-      }, 1000);
-      application.renderScreen('waiting');
+      const result = await application.useCases.move(target.dataset.name);
+      console.log(result);
+      application.events.start();
+      // setTimeout(() => {
+      //   application.renderScreen('lose');
+      // }, 1000);
+      // application.renderScreen('waiting');
     },
   },
   useCases: {
-    getPlayersList: async () => {
-      // application.renderScreen('loader');
+    move: async (move) => {
       try {
-        const token = window.localStorage.getItem('game-token');
-        if (!token) application.renderScreen('login');
         const response = await fetch(
-          'https://skypro-rock-scissors-paper.herokuapp.com/player-list?token=' +
-            token
+          url +
+            '/play?token=' +
+            token +
+            '&id=' +
+            application.gameId +
+            '&move=' +
+            move
         );
         if (response.status !== 200) throw new Error('Ошибка');
-        // application.app.textContent = '';
         const result = await response.json();
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
       }
     },
-    login: async (e) => {
+    getPlayersList: async () => {
+      // application.renderScreen('loader');
+      try {
+        const token = window.localStorage.getItem('game-token');
+        if (!token) application.renderScreen('login');
+        const response = await fetch(
+          application.url + '/player-list?token=' + token
+        );
+        if (response.status !== 200) throw new Error('Ошибка');
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+      }
+    },
+    gameStart: async (e) => {
+      // application.renderScreen('loader');
+      try {
+        const response = await fetch(
+          application.url + '/start?token=' + application.getToken()
+        );
+        if (response.status !== 200) throw new Error('Ошибка');
+        application.app.textContent = '';
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+      }
+    },
+    getLogin: async (e) => {
       const inputValue = e.target
         .closest('.login')
         .querySelector('.input__login').value;
       application.renderScreen('loader');
       try {
         const response = await fetch(
-          'https://skypro-rock-scissors-paper.herokuapp.com/login?login=' +
-            inputValue
+          application.url + '/login?login=' + inputValue
         );
         if (response.status !== 200) throw new Error('Ошибка');
         application.app.textContent = '';
@@ -500,12 +561,10 @@ window.application = {
         application.renderScreen('errorNetwork');
       }
     },
-    status: async () => {
+    getStatusNetwork: async () => {
       application.renderScreen('loader');
       try {
-        const response = await fetch(
-          'https://skypro-rock-scissors-paper.herokuapp.com/ping'
-        );
+        const response = await fetch(application.url + '/ping');
         if (response.status !== 200) throw new Error('Ошибка');
         application.app.textContent = '';
         const result = await response.json();
@@ -515,10 +574,38 @@ window.application = {
         application.renderScreen('errorNetwork');
       }
     },
-    ping: async () => {
+    getStatusGame: async () => {
+      // application.renderScreen('loader');
       try {
         const response = await fetch(
-          'https://skypro-rock-scissors-paper.herokuapp.com/ping'
+          application.url +
+            '/game-status?token=' +
+            application.getToken() +
+            '&id=' +
+            application.gameId
+        );
+        if (response.status !== 200) throw new Error('Ошибка');
+        // application.app.textContent = '';
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+      }
+    },
+    ping: async () => {
+      try {
+        const response = await fetch(application.url + '/ping');
+        if (response.status !== 200) throw new Error('Ошибка');
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        application.renderScreen('errorNetwork');
+      }
+    },
+    getPlayerStatus: async () => {
+      try {
+        const response = await fetch(
+          application.url + '/player-status?token=' + application.getToken()
         );
         if (response.status !== 200) throw new Error('Ошибка');
         const result = await response.json();
@@ -547,6 +634,22 @@ window.application = {
       }, 2000);
       application.timers.push(interval);
     },
+    gameStatus: () => {
+      const interval = setInterval(async () => {
+        const status = await application.useCases.getStatusGame();
+        application.events.start();
+        console.log(status);
+      }, 1000);
+      application.timers.push(interval);
+    },
+    playerStatus: () => {
+      const interval = setInterval(async () => {
+        const status = await application.useCases.getStatusGame();
+        console.log(status);
+      }, 110000);
+      application.timers.push(interval);
+    },
   },
+  gameId: '',
   timers: [],
 };
