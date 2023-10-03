@@ -102,7 +102,7 @@ window.application = {
         event: application.events.start,
       };
     },
-    move: (name) => {
+    move: () => {
       return [
         {
           block: 'h1',
@@ -112,7 +112,7 @@ window.application = {
         {
           block: 'p',
           cls: 'game__player',
-          textContent: `Вы против ${name}`,
+          textContent: `Вы против ${application.name}`,
         },
         {
           block: 'div',
@@ -121,7 +121,7 @@ window.application = {
         },
       ];
     },
-    waiting: (name, text) => {
+    waiting: (text) => {
       return [
         {
           block: 'h1',
@@ -131,7 +131,7 @@ window.application = {
         {
           block: 'p',
           cls: 'game__player',
-          textContent: `Вы против ${name}`,
+          textContent: `Вы против ${application.name}`,
         },
         {
           block: 'img',
@@ -160,7 +160,7 @@ window.application = {
         },
         {
           block: 'h2',
-          textContent: 'Вы победили',
+          textContent: `Вы победили ${application.name}`,
         },
       ];
     },
@@ -176,17 +176,23 @@ window.application = {
         },
         {
           block: 'h2',
-          textContent: 'Вы проиграли',
+          textContent: `Вы проиграли ${application.name}`,
         },
       ];
     },
-    toLobby: () => {
+    toLobby:  () => {
       return {
         block: 'button',
         cls: 'btn',
         textContent: 'Перейти в лобби',
-        event: () => {
+        event: async () => {
           application.gameId = '';
+          application.name = '';
+          const playerStatus = await application.useCases.getPlayerStatus()
+          if (playerStatus.status === 'error')
+          {application.renderScreen('lobby');
+        return;}
+          application.intervals.updatePlayersList();
           application.renderScreen('lobby');
         },
       };
@@ -198,6 +204,7 @@ window.application = {
         textContent: 'Играть еще',
         event: () => {
           application.gameId = '';
+          application.name = '';
           application.events.start();
         },
       };
@@ -262,7 +269,6 @@ window.application = {
   },
   screens: {
     lose: function () {
-      const name = 'ВладДенис';
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
@@ -276,7 +282,7 @@ window.application = {
           {
             block: 'p',
             cls: 'game__player',
-            textContent: `против ${name}`,
+            textContent: `Вы против ${application.name}`,
           },
           {
             block: 'div',
@@ -293,7 +299,6 @@ window.application = {
     },
     win: function () {
       const thisBlocks = application.blocks;
-      const name = 'ВладДенис';
       const elem = {
         block: 'div',
         cls: 'win',
@@ -306,7 +311,7 @@ window.application = {
           {
             block: 'p',
             cls: 'game__player',
-            textContent: `против ${name}`,
+            textContent: `против ${application.name}`,
           },
           {
             block: 'div',
@@ -328,21 +333,19 @@ window.application = {
     },
     waiting: function (text) {
       //заглушка
-      const name = 'ВладСергей';
       const elem = {
         block: 'div',
         cls: 'waiting',
-        content: application.blocks.waiting(name, text),
+        content: application.blocks.waiting(text),
       };
       return elem;
     },
     game: function () {
       //временная заглушка
-      const name = 'ВладДенис';
       const elem = {
         block: 'div',
         cls: 'game',
-        content: application.blocks.move(name),
+        content: application.blocks.move(),
       };
       return elem;
     },
@@ -368,6 +371,7 @@ window.application = {
     },
     lobby: async function () {
       const listPlayers = await application.useCases.getPlayersList();
+      console.log(listPlayers)
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
@@ -396,11 +400,11 @@ window.application = {
   status: function (className) {
     document.querySelector(className).classList.toggle('className');
   },
-  renderScreen: async function (screenName) {
+  renderScreen: async function (screenName,text) {
     //отрисовываем экран
     application.app.textContent = '';
     application.app.appendChild(
-      this.renderEngine(await application.screens[screenName]())
+      this.renderEngine(await application.screens[screenName](text))
     );
   },
   renderEngine: function (block) {
@@ -520,6 +524,7 @@ window.application = {
       }
       if (result['game-status'].status === 'waiting-for-your-move') {
         application.renderScreen('game');
+        application.intervals.gameStatus();
       }
       console.log(result);
       if (result['game-status'].status === 'lose') {
@@ -542,15 +547,15 @@ window.application = {
   useCases: {
     move: async (move) => {
       console.log('useCases - move');
-      console.log(
-        application.url +
-          '/play?token=' +
-          application.token +
-          '&id=' +
-          application.gameId +
-          '&move=' +
-          move
-      );
+      // console.log(
+      //   application.url +
+      //     '/play?token=' +
+      //     application.token +
+      //     '&id=' +
+      //     application.gameId +
+      //     '&move=' +
+      //     move
+      // );
       try {
         const response = await fetch(
           application.url +
@@ -702,6 +707,9 @@ window.application = {
     gameStatus: () => {
       const interval = setInterval(async () => {
         const status = await application.useCases.getStatusGame();
+        if (status['game-status'].enemy) {
+          application.name = status['game-status'].enemy.login;
+        }
         application.events.start();
         console.log(status);
       }, 1000);
@@ -717,6 +725,7 @@ window.application = {
   },
   gameId: '',
   timers: [],
+  name:''
 };
 
 export default application;

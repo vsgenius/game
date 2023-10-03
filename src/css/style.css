@@ -66,6 +66,8 @@
   width: 100%;
   cursor: pointer;
   margin-bottom: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .btn__no-active {
@@ -125,9 +127,13 @@
 }
 
 .game__btn img {
-  width: 25%;
-  border-radius: 20px;
+  width: 35%;
+  border-radius: 25px;
   background-color: var(--lobby-name-color);
+  transition: transform 0.1s;
+}
+.game__btn img:hover {
+  transform: scale(0.85);
 }
 
 .win {
