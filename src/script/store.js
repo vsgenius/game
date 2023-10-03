@@ -1,5 +1,13 @@
+import lose from '../img/lose.png'
+import rock from '../img/rock.png'
+import paper from '../img/paper.png'
+import headerImage from '../img/headerImage.png'
+import scissors from '../img/scissors.png'
+import win from '../img/win.png'
+import clock from '../img/clock.png'
+
+
 window.application = {
-  // url: 'http://localhost:3000',
   url: ' https://skypro-rock-scissors-paper.herokuapp.com',
   app: document.querySelector('.app'),
   players: [],
@@ -17,7 +25,7 @@ window.application = {
           cls: 'btn',
           textContent: 'Повторить',
           event: async () => {
-            if (gameId) {
+            if (application.gameId) {
               const result = await application.useCases.getPlayerStatus();
               console.log(result);
               if (result['player-status'] && result['player-status'].game) {
@@ -26,7 +34,17 @@ window.application = {
                 return;
               }
             }
-            application.renderScreen('main');
+            application.renderScreen('lobby');
+          },
+        },
+        {
+          block: 'button',
+          cls: 'btn',
+          textContent: 'Перелогиниться',
+          event: async () => {
+            application.token = '';
+            application.gameId = '';
+            application.renderScreen('login');
           },
         },
       ];
@@ -119,7 +137,7 @@ window.application = {
           block: 'img',
           cls: ['waiting__clock'],
           attr: {
-            src: './src/img/clock.png',
+            src: clock,
             alt: 'waiting',
           },
         },
@@ -136,7 +154,7 @@ window.application = {
           block: 'img',
           cls: ['win__image'],
           attr: {
-            src: './src/img/win.png',
+            src: win,
             alt: 'win',
           },
         },
@@ -152,7 +170,7 @@ window.application = {
           block: 'img',
           cls: ['win__image'],
           attr: {
-            src: './src/img/lose.png',
+            src: lose,
             alt: 'lose',
           },
         },
@@ -190,7 +208,7 @@ window.application = {
         cls: ['img', 'header__image'],
         textContent: 'Войти в игру',
         attr: {
-          src: './src/img/headerImage.png',
+          src: headerImage,
         },
       };
     },
@@ -213,7 +231,7 @@ window.application = {
             cls: 'image',
             dataSetName: 'rock',
             attr: {
-              src: 'src/img/rock.png',
+              src: rock,
 
               alt: 'rock',
             },
@@ -223,7 +241,7 @@ window.application = {
             cls: 'image',
             dataSetName: 'scissors',
             attr: {
-              src: 'src/img/scissors.png',
+              src: scissors,
 
               alt: 'scissors',
             },
@@ -233,7 +251,7 @@ window.application = {
             cls: 'image',
             dataSetName: 'paper',
             attr: {
-              src: 'src/img/paper.png',
+              src: paper,
 
               alt: 'paper',
             },
@@ -364,13 +382,13 @@ window.application = {
     loader: function () {
       return { block: 'span', cls: 'loader' };
     },
-    errorNetwork: function () {
+    errorNetwork: async function () {
       application.clearTimers();
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
         cls: 'error',
-        content: thisBlocks.errorNetwork(),
+        content: await thisBlocks.errorNetwork(),
       };
       return elem;
     },
@@ -700,3 +718,5 @@ window.application = {
   gameId: '',
   timers: [],
 };
+
+export default application;
