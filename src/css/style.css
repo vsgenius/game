@@ -6,6 +6,10 @@
   --lobby-name-color: #aed5ce;
   --text-color: #7a7a7a;
 }
+* {
+  margin: 0;
+  padding: 0;
+}
 
 .body {
   margin: 0;
@@ -21,6 +25,7 @@
   overflow: auto;
   background-color: var(--background-color);
   font-family: Arial;
+  font-size: 1.2rem;
 }
 
 .app {
@@ -47,9 +52,11 @@
   flex-direction: column;
   gap: 5px;
   width: 100%;
+  font-size: 1.5rem;
 }
 
 .input__login {
+  font-size: 1.2rem;
   padding: 5px;
   border-radius: 5px;
   border: 1px solid #05a58d;
@@ -75,6 +82,7 @@
 }
 
 .lobby {
+  font-size: 1.5rem;
   width: 100%;
 }
 
@@ -88,6 +96,7 @@
 
 .waiting {
   font-family: Arial;
+  font-size: 1.2rem;
   color: var(--text-color);
   text-align: center;
 }
@@ -108,6 +117,9 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+.game__player {
+  padding: 10px 0;
 }
 
 .game__image {
@@ -182,4 +194,17 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.static__player {
+  display: flex;
+  gap: 20px;
+}
+.static__move {
+  display: flex;
+  gap: 20px;
+  justify-content:space-around ;
+}
+.static__text {
+  padding: 10px 0;
 }

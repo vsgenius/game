@@ -13,6 +13,34 @@ window.application = {
   players: [],
   blocks: {
     //создаем блоки игры
+    staticPlayerWinLose:  ()=>{
+      const result = [];
+      const enemy = application.name;
+      for (const key in enemy) {
+        if (key !== 'login' && key !== 'rocks' && key !== 'scissors' && key !== 'papers') {
+        
+        result.push({
+          block: 'p',
+          cls: ['static__text'],
+          textContent: `${key==='wins'?'Побед':'Поражений'} - ${enemy[key]}`,
+        })}
+      }
+      return result;
+    },
+    staticPlayerMove:  ()=>{
+      const result = [];
+      const enemy = application.name;
+      for (const key in enemy) {
+        if (key !== 'login' && key !== 'wins' && key !== 'loses') {
+        
+        result.push({
+          block: 'p',
+          cls: ['static__text'],
+          textContent: `${enemy[key]}`,
+        })}
+      }
+      return result;
+    },
     errorNetwork: async () => {
       return [
         {
@@ -27,7 +55,7 @@ window.application = {
           event: async () => {
             if (application.gameId) {
               const result = await application.useCases.getPlayerStatus();
-              console.log(result);
+              // console.log(result);
               if (result['player-status'] && result['player-status'].game) {
                 application.gameId = result['player-status'].game.id;
                 application.events.start();
@@ -103,6 +131,7 @@ window.application = {
       };
     },
     move: () => {
+      // console.log(application.blocks.staticPlayerWinLose())
       return [
         {
           block: 'h1',
@@ -112,13 +141,24 @@ window.application = {
         {
           block: 'p',
           cls: 'game__player',
-          textContent: `Вы против ${application.name}`,
+          textContent: `Вы против ${application.name.login}`,
+        },
+        {
+          block: 'div',
+          cls: 'static__player',
+          content: application.blocks.staticPlayerWinLose(),
         },
         {
           block: 'div',
           cls: 'game__btns',
           content: [application.blocks.gameBlock(application.events.move)],
         },
+        {
+          block: 'div',
+          cls: 'static__move',
+          content: application.blocks.staticPlayerMove(),
+        },
+
       ];
     },
     waiting: (text) => {
@@ -131,7 +171,7 @@ window.application = {
         {
           block: 'p',
           cls: 'game__player',
-          textContent: `Вы против ${application.name}`,
+          textContent: application.name?`Вы против ${application.name.login}`:'',
         },
         {
           block: 'img',
@@ -160,7 +200,7 @@ window.application = {
         },
         {
           block: 'h2',
-          textContent: `Вы победили ${application.name}`,
+          textContent: `Вы победили ${application.name.login}`,
         },
       ];
     },
@@ -176,7 +216,7 @@ window.application = {
         },
         {
           block: 'h2',
-          textContent: `Вы проиграли ${application.name}`,
+          textContent: `Вы проиграли ${application.name.login}`,
         },
       ];
     },
@@ -282,7 +322,7 @@ window.application = {
           {
             block: 'p',
             cls: 'game__player',
-            textContent: `Вы против ${application.name}`,
+            textContent: `Вы против ${application.name.login}`,
           },
           {
             block: 'div',
@@ -311,7 +351,7 @@ window.application = {
           {
             block: 'p',
             cls: 'game__player',
-            textContent: `против ${application.name}`,
+            textContent: `против ${application.name.login}`,
           },
           {
             block: 'div',
@@ -371,7 +411,7 @@ window.application = {
     },
     lobby: async function () {
       const listPlayers = await application.useCases.getPlayersList();
-      console.log(listPlayers)
+      // console.log(listPlayers)
       const thisBlocks = application.blocks;
       const elem = {
         block: 'div',
@@ -471,14 +511,10 @@ window.application = {
   },
   token: '',
   events: {
-    // GET /player-status
-    // GET /player-list
     enter: async () => {
-      // GET /ping
-      console.log('events -login');
+      // console.log('events -login');
       const result = await application.useCases.getPlayerStatus();
       if (window.localStorage.getItem('game-token') && result.status === 'ok') {
-        // console.log(result);
         if (result['player-status'].game) {
           application.gameId = result['player-status'].game.id;
           application.events.start();
@@ -492,7 +528,7 @@ window.application = {
       }
     },
     login: async (e) => {
-      console.log(' events -login');
+      // console.log(' events -login');
       await application.useCases.getLogin(e);
       application.clearTimers();
       application.intervals.updatePlayersList();
@@ -500,33 +536,35 @@ window.application = {
       application.renderScreen('lobby');
     },
     start: async () => {
-      console.log('events -start');
+      // console.log('events -start');
       application.clearTimers();
-      console.log(application.gameId);
+      // console.log(application.gameId);
       if (!application.gameId) {
         const result = await application.useCases.gameStart();
         if (result.message !== 'player is already in game') {
           application.gameId = result['player-status'].game.id;
-          console.log(application.gameId);
+          // console.log(application.gameId);
         }
       }
       const result = await application.useCases.getStatusGame();
-      console.log(result);
+      // console.log(result);
       if (!result || result.message === 'no game id') return;
-      console.log(result);
+      // console.log(result);
       if (result['game-status'].status === 'waiting-for-start') {
-        application.renderScreen('waiting', 'Ожидаем игрока');
         application.intervals.gameStatus();
+        application.renderScreen('waiting', 'Ожидаем игрока');
+
       }
       if (result['game-status'].status === 'waiting-for-enemy-move') {
-        application.renderScreen('waiting', 'Ожидаем хода соперника');
         application.intervals.gameStatus();
+        application.renderScreen('waiting', 'Ожидаем хода соперника');
+
       }
       if (result['game-status'].status === 'waiting-for-your-move') {
         application.renderScreen('game');
-        application.intervals.gameStatus();
+
       }
-      console.log(result);
+      // console.log(result);
       if (result['game-status'].status === 'lose') {
         application.renderScreen('lose');
       }
@@ -535,27 +573,18 @@ window.application = {
       }
     },
     move: async (e) => {
-      console.log('events - move');
+      // console.log('events - move');
       const { target } = e;
       if (target.className !== 'image') return;
-      console.log(target.dataset.name);
+      // console.log(target.dataset.name);
       const result = await application.useCases.move(target.dataset.name);
-      console.log(result);
+      // console.log(result);
       application.events.start();
     },
   },
   useCases: {
     move: async (move) => {
-      console.log('useCases - move');
-      // console.log(
-      //   application.url +
-      //     '/play?token=' +
-      //     application.token +
-      //     '&id=' +
-      //     application.gameId +
-      //     '&move=' +
-      //     move
-      // );
+      // console.log('useCases - move');
       try {
         const response = await fetch(
           application.url +
@@ -566,17 +595,17 @@ window.application = {
             '&move=' +
             move
         );
-        console.log(response);
+        // console.log(response);
         if (response.status !== 200) throw new Error('Ошибка');
         const result = await response.json();
-        console.log(result);
+        // console.log(result);
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
       }
     },
     getPlayersList: async () => {
-      console.log('useCases - getPlayersList');
+      // console.log('useCases - getPlayersList');
       // application.renderScreen('loader');
       try {
         const token = window.localStorage.getItem('game-token');
@@ -592,7 +621,7 @@ window.application = {
       }
     },
     gameStart: async (e) => {
-      console.log('useCases - gameStart');
+      // console.log('useCases - gameStart');
       // application.renderScreen('loader');
       try {
         const response = await fetch(
@@ -607,10 +636,11 @@ window.application = {
       }
     },
     getLogin: async (e) => {
-      console.log('useCases - getLogin');
+      // console.log('useCases - getLogin');
       const inputValue = e.target
         .closest('.login')
         .querySelector('.input__login').value;
+        if (!inputValue) return;
       application.renderScreen('loader');
       try {
         const response = await fetch(
@@ -626,7 +656,7 @@ window.application = {
       }
     },
     getStatusNetwork: async () => {
-      console.log('useCases - getStatusNetwork');
+      // console.log('useCases - getStatusNetwork');
       application.renderScreen('loader');
       try {
         const response = await fetch(application.url + '/ping');
@@ -640,7 +670,7 @@ window.application = {
       }
     },
     getStatusGame: async () => {
-      console.log('useCases - getStatusGame');
+      // console.log('useCases - getStatusGame');
       // application.renderScreen('loader');
       try {
         const response = await fetch(
@@ -654,14 +684,17 @@ window.application = {
         if (response.status !== 200) throw new Error('Ошибка');
         // application.app.textContent = '';
         const result = await response.json();
-        console.log(result);
+        if (result['game-status'].enemy) {
+          application.name = result['game-status'].enemy;
+        }
+        // console.log(result);
         return result;
       } catch (error) {
         application.renderScreen('errorNetwork');
       }
     },
     ping: async () => {
-      console.log('useCases - ping');
+      // console.log('useCases - ping');
       try {
         const response = await fetch(application.url + '/ping');
         if (response.status !== 200) throw new Error('Ошибка');
@@ -672,7 +705,7 @@ window.application = {
       }
     },
     getPlayerStatus: async () => {
-      console.log('useCases - getPlayerStatus');
+      // console.log('useCases - getPlayerStatus');
       try {
         const response = await fetch(
           application.url + '/player-status?token=' + application.getToken()
@@ -708,7 +741,7 @@ window.application = {
       const interval = setInterval(async () => {
         const status = await application.useCases.getStatusGame();
         if (status['game-status'].enemy) {
-          application.name = status['game-status'].enemy.login;
+          application.name = status['game-status'].enemy;
         }
         application.events.start();
         console.log(status);
@@ -718,7 +751,7 @@ window.application = {
     playerStatus: () => {
       const interval = setInterval(async () => {
         const status = await application.useCases.getStatusGame();
-        console.log(status);
+        // console.log(status);
       }, 110000);
       application.timers.push(interval);
     },

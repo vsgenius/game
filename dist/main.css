@@ -21,6 +21,7 @@
   overflow: auto;
   background-color: var(--background-color);
   font-family: Arial;
+  font-size: 1.2rem;
 }
 
 .app {
@@ -47,9 +48,11 @@
   flex-direction: column;
   gap: 5px;
   width: 100%;
+  font-size: 1.5rem;
 }
 
 .input__login {
+  font-size: 1.2rem;
   padding: 5px;
   border-radius: 5px;
   border: 1px solid #05a58d;
@@ -75,6 +78,7 @@
 }
 
 .lobby {
+  font-size: 1.5rem;
   width: 100%;
 }
 
@@ -88,6 +92,7 @@
 
 .waiting {
   font-family: Arial;
+  font-size: 1.2rem;
   color: var(--text-color);
   text-align: center;
 }
